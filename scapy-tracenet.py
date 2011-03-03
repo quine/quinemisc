@@ -1,43 +1,50 @@
 #!/usr/bin/env python
 
 from scapy import all as scapy
-import sys 
-
+from optparse import OptionParser
+import sys
 from mmap import mmap, MAP_PRIVATE, PROT_READ
 from os import fstat
 from os import geteuid
 
-def usage():
-	print "Usage: " + sys.argv[0] + " customer hostfile"
-	sys.exit(1)
+def main():
+    usage = "%prog [options]"
+    parser = OptionParser(usage)
+    parser.add_option("-H","--hosts",dest="dsthostsfile",help="Specify hosts file")
+    parser.add_option("-p","--port",dest="dstport",help="Specify traceroute port", default="80")
+    parser.add_option("-f","--file",dest="dstfile",help="")
+    parser.add_option("-r","--resolve",dest="resolve",action="store_true",help="Enable AS resolution",default=False)
 
-def tracehost(customer, thostsfile):
-	f = file(thostsfile,mode='rt')
+    (options, args) = parser.parse_args()
+
+    dsthostsfile = options.dsthostsfile
+    dstport = options.dstport
+    dstfile = options.dstfile
+    if options.resolve == False:
+        scapy.conf.AS_resolver=None
+
+    tracehost(dsthostsfile,dstport,dstfile)
+
+def tracehost(dsthostsfile,dstport,dstfile):
+	f = file(dsthostsfile,mode='rt')
 	fd = f.fileno()
 	m = mmap(fd, fstat(fd).st_size, MAP_PRIVATE, PROT_READ)
 
-	thosts=[]
+	dsthosts=[]
 	while True:
 	        line = m.readline()
         	if not line: break
-        	thosts.extend(line.split())
+        	dsthosts.extend(line.split())
 
-	res,unans = scapy.traceroute(thosts)
-	res.graph(type="svg",target=">" +customer+"-traceroute.svg")
+	res,unans = scapy.traceroute(dsthosts,dport=int(dstport))
+	res.graph(type="svg",target=">"+dstfile)
 
 #	for thost in thosts:
 #        	res1,unans1 = scapy.traceroute(thost)
 #        	res1.graph(type="ps",target=">/tmp/"+cust+"-traceroute-"+thost)
 
-def getargs():
-	argc = len(sys.argv)
-	if argc != 3:
-		usage()
-
-	tracehost(sys.argv[1],sys.argv[2])
-
-if __name__ == '__main__':
-	if geteuid() !=0:
-		print "This script must be run as root. Sorry..."
-		sys.exit(1)
-	getargs()
+if __name__=='__main__':
+    if geteuid() !=0:
+        print "[-] This script must be run as root. Sorry..."
+        sys.exit(1)
+    main()
