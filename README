@@ -1,0 +1,20 @@
+Just a collection of scripts, tools, etc. that I've written, mainly to help me,
+but that I'd like to share with anyone else that might be interested.
+
+- scapy-tracehost.py
+Wrapper script for scapy's TCP traceroute function. Takes in a single
+destination hosts along with an optional destination TCP port, runs the
+traceroute, generates a graph using scapy's graph functionality.
+
+- scapy-tracenet.py
+Wrapper script for scapy's TCP traceroute function. Takes in a file containing
+destination hosts, one per line, along with an optional destination TCP port,
+runs the traceroute, generates a graph using scapy's graph functionality.
+
+
+TODO:
+- scapy-tracehost.py
+Better comments; possible merge w/scapy-tracenet.py
+
+- scapy-tracenet.py
+Add CIDR and range support; better comments
